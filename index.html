@@ -322,8 +322,18 @@
             }
         }
     </style>
+<style id="moodle-anpassung">
+/* Überarbeitung Oktober 2026: Barrierearmut und Moodle */
+:focus-visible{outline:3px solid #1d4ed8 !important;outline-offset:2px !important}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+.mdl-hinweis{max-width:900px;margin:12px auto;padding:12px 16px;border-left:4px solid #1d4ed8;background:#eef3fb;color:#1f2a37;border-radius:6px;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;text-align:left}
+.mdl-hinweis b{font-weight:700}
+.mdl-bildquellen{max-width:900px;margin:24px auto;padding:8px 16px;font:13px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#444;text-align:left}
+.mdl-bildquellen a{color:#1d4ed8;word-break:break-all}
+</style>
 </head>
 <body>
+<div class="mdl-hinweis" role="note"><b>Zur Einordnung:</b> Dieser Selbsttest ist kein wissenschaftliches Messinstrument. Er ist ein Anlass, über die eigene Haltung nachzudenken. Deine Antworten bleiben auf diesem Gerät und werden nirgends gespeichert oder gesendet.</div>
     <div class="container">
         <h1>Humanistischer Werte-Test</h1>
         <div class="subtitle">Reflexion deiner Werte in zentralen Kategorien des Humanismus und bei Wertekonflikten</div>
@@ -854,12 +864,12 @@
             <h2 class="results-title">Dein humanistisches Werteprofil</h2>
             
             <div class="chart-container">
-                <canvas id="radarChart" width="400" height="400"></canvas>
+                <div id="radarChart" class="mdl-diagramm"></div>
             </div>
             
             <div class="chart-container">
                 <h3>Deine Wertprioritäten in Konfliktsituationen</h3>
-                <canvas id="valueChart" width="400" height="300"></canvas>
+                <div id="valueChart" class="mdl-diagramm"></div>
             </div>
             
             <div class="results-grid">
@@ -991,7 +1001,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         console.log("Script gestartet");
 
@@ -1123,11 +1132,11 @@
                     // Interpretation hinzufügen
                     let interpretation;
                     if (score >= 7) {
-                        interpretation = "⭐ Hervorragend! Diese humanistischen Werte sind in deinem Handeln sehr stark verankert.";
+                        interpretation = "In deinen Antworten zeigt sich dieser Wert sehr deutlich. Wo fällt es dir im Alltag trotzdem schwer?";
                     } else if (score >= 5) {
-                        interpretation = "🔹 Gut: Diese Werte sind dir wichtig, es gibt aber noch Raum für Weiterentwicklung.";
+                        interpretation = "Dieser Wert zeigt sich in vielen deiner Antworten. In welchen Situationen hast du anders entschieden – und warum?";
                     } else {
-                        interpretation = "💡 Entwicklungspotential: Diese Werte könnten in deinem Alltag stärker berücksichtigt werden.";
+                        interpretation = "In deinen Antworten standen hier oft andere Gesichtspunkte im Vordergrund. Welche waren das?";
                     }
 
                     const interpretationElement = document.getElementById(`interpretation${i}`);
@@ -1267,6 +1276,34 @@
                 }
             });
         }
-    </script></script>
+    </script>
+<script>
+/* Diagramme ohne externe Bibliothek (Überarbeitung Oktober 2026) */
+function mdlSvg(tag,attrs,text){var e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(var k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;return e;}
+function updateRadarChart(scores){
+  var box=document.getElementById('radarChart'); if(!box) return; box.innerHTML='';
+  var labels=['Menschenwürde','Empathie','Gerechtigkeit','Freiheit','Verantwortung','Wahrhaftigkeit','Toleranz','Friedfertigkeit'];
+  var W=420,H=380,cx=210,cy=190,R=130,n=labels.length;
+  var svg=mdlSvg('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':'Werteprofil: '+labels.map(function(l,i){return l+' '+Math.round(scores[i]/8*100)+' Prozent';}).join(', ')});
+  svg.style.width='100%';svg.style.maxWidth='460px';svg.style.height='auto';
+  function pt(i,r){var a=-Math.PI/2+i*2*Math.PI/n;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+  [0.25,0.5,0.75,1].forEach(function(f){var p=[];for(var i=0;i<n;i++)p.push(pt(i,R*f).join(','));svg.appendChild(mdlSvg('polygon',{points:p.join(' '),fill:'none',stroke:'#cbd5e1'}));});
+  for(var i=0;i<n;i++){var e=pt(i,R);svg.appendChild(mdlSvg('line',{x1:cx,y1:cy,x2:e[0],y2:e[1],stroke:'#cbd5e1'}));
+    var t=pt(i,R+26);svg.appendChild(mdlSvg('text',{x:t[0],y:t[1]+4,'text-anchor':'middle','font-size':'12',fill:'#334155'},labels[i]));}
+  var p=[];for(var i=0;i<n;i++)p.push(pt(i,R*scores[i]/8).join(','));
+  svg.appendChild(mdlSvg('polygon',{points:p.join(' '),fill:'rgba(52,152,219,.25)',stroke:'#2980b9','stroke-width':'2'}));
+  box.appendChild(svg);
+}
+function updateValueChart(valueCounts){
+  var box=document.getElementById('valueChart'); if(!box) return; box.innerHTML='';
+  var namen={E:'Empathie',G:'Gerechtigkeit',F:'Freiheit',V:'Verantwortung',H:'Ehrlichkeit',T:'Toleranz',M:'Menschenwürde',S:'Selbstschutz'};
+  var max=Math.max(1,Math.max.apply(null,Object.keys(namen).map(function(k){return valueCounts[k]||0;})));
+  var html='<div role="list" style="display:grid;gap:6px;max-width:520px;margin:0 auto">';
+  Object.keys(namen).forEach(function(k){var v=valueCounts[k]||0;
+    html+='<div role="listitem" style="display:grid;grid-template-columns:130px 1fr 28px;align-items:center;gap:8px;font-size:14px">'+
+      '<span>'+namen[k]+'</span><span style="background:#e2e8f0;border-radius:4px;height:14px;display:block"><span style="display:block;height:14px;border-radius:4px;background:#2980b9;width:'+(v/max*100)+'%"></span></span><b>'+v+'</b></div>';});
+  box.innerHTML=html+'</div>';
+}
+</script>
 </body>
 </html>
